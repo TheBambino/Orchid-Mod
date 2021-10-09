@@ -30,7 +30,7 @@ namespace OrchidMod
 		{
 			if (npc.lifeMax > 5 && npc.value > 0f)
 			{
-				if (Main.player[(int)Player.FindClosest(npc.position, npc.width, npc.height)].ZoneGlowshroom && Main.hardMode && Main.rand.Next(100) == 0)
+				if (Main.player[(int)Player.FindClosest(npc.position, npc.width, npc.height)].ZoneGlowshroom && Main.hardMode && Main.rand.NextFloat() < .04f)
 				{
 					Item.NewItem(npc.getRect(), ItemType<Content.Items.Placeables.ShroomKey>());
 				}
