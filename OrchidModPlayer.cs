@@ -6,11 +6,13 @@ using OrchidMod.Gambler;
 using OrchidMod.Shaman;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameInput;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using static Terraria.ModLoader.ModContent;
@@ -19,6 +21,8 @@ namespace OrchidMod
 {
 	public class OrchidModPlayer : ModPlayer
 	{
+		public static OrchidModPlayer instance; //new
+
 		public float OchidScreenH = Main.screenHeight;
 		public float OchidScreenW = Main.screenWidth;
 		public float OchidScreenHCompare;
@@ -351,6 +355,11 @@ namespace OrchidMod
 			}
 		}
 
+		public override void PreUpdateMovement()
+		{
+			this.CheckWoodBreak(player);
+		}
+
 		public override void PostUpdateEquips()
 		{
 			this.updateBuffEffects();
@@ -376,8 +385,6 @@ namespace OrchidMod
 			this.alchemistCrit += this.customCrit;
 			this.gamblerCrit += this.customCrit;
 			this.dancerCrit += this.customCrit;
-
-			this.CheckWoodBreak(player);
 		}
 
 		public override void PostUpdate()
@@ -456,7 +463,7 @@ namespace OrchidMod
 				for (int i = 0; i < Main.maxInventory; i++)
 				{
 					Item item = Main.LocalPlayer.inventory[i];
-					if (item.type != 0)
+					if (item.type != ItemID.None)
 					{
 						OrchidModGlobalItem orchidItem = item.GetGlobalItem<OrchidModGlobalItem>();
 						if (orchidItem.alchemistCatalyst)
@@ -526,12 +533,12 @@ namespace OrchidMod
 
 		public void updateBuffEffects()
 		{
-			if (player.FindBuffIndex(26) > -1)
+			if (player.FindBuffIndex(BuffID.WellFed) > -1)
 			{ // WELL FED
 				this.customCrit += 2;
 			}
 
-			if (player.FindBuffIndex(115) > -1)
+			if (player.FindBuffIndex(BuffID.Rage) > -1)
 			{ // RAGE
 				this.customCrit += 10;
 			}
@@ -561,28 +568,28 @@ namespace OrchidMod
 
 		public void updateItemEffects()
 		{
-			if (player.armor[1].type == 374) this.customCrit += 3;// COBALT BREASPLATE
-			if (player.armor[1].type == 1208) this.customCrit += 2; // PALLADIUM BREASTPLATE
-			if (player.armor[2].type == 1209) this.customCrit += 1; // PALLADIUM LEGS
-			if (player.armor[2].type == 380) this.customCrit += 3; // MYTHRIL LEGS
-			if (player.armor[1].type == 1213) this.customCrit += 6; // ORICHALCUM BREASPLATE
-			if (player.armor[2].type == 404) this.customCrit += 4; // ADAMANTITE LEGS
-			if (player.armor[1].type == 1218) this.customCrit += 3; // TITANIUM BREASTPLATE
-			if (player.armor[2].type == 1219) this.customCrit += 3; // TITANIUM LEGS
-			if (player.armor[2].type == 2277) this.customCrit += 5; // GI
-			if (player.armor[1].type == 551) this.customCrit += 7; // HALLOWED BREASPLATE
-			if (player.armor[1].type == 1004) this.customCrit += 7; // CHLOROPHITE BREASTPLATE
-			if (player.armor[2].type == 1005) this.customCrit += 8; // CHLOROPHITE LEGS
+			if (player.armor[1].type == ItemID.CobaltBreastplate) this.customCrit += 3;// COBALT BREASPLATE
+			if (player.armor[1].type == ItemID.PalladiumBreastplate) this.customCrit += 2; // PALLADIUM BREASTPLATE
+			if (player.armor[2].type == ItemID.PalladiumLeggings) this.customCrit += 1; // PALLADIUM LEGS
+			if (player.armor[2].type == ItemID.MythrilGreaves) this.customCrit += 3; // MYTHRIL LEGS
+			if (player.armor[1].type == ItemID.OrichalcumBreastplate) this.customCrit += 6; // ORICHALCUM BREASPLATE
+			if (player.armor[2].type == ItemID.AdamantiteLeggings) this.customCrit += 4; // ADAMANTITE LEGS
+			if (player.armor[1].type == ItemID.TitaniumBreastplate) this.customCrit += 3; // TITANIUM BREASTPLATE
+			if (player.armor[2].type == ItemID.TitaniumLeggings) this.customCrit += 3; // TITANIUM LEGS
+			if (player.armor[2].type == ItemID.Gi) this.customCrit += 5; // GI
+			if (player.armor[1].type == ItemID.HallowedPlateMail) this.customCrit += 7; // HALLOWED BREASPLATE
+			if (player.armor[1].type == ItemID.ChlorophytePlateMail) this.customCrit += 7; // CHLOROPHITE BREASTPLATE
+			if (player.armor[2].type == ItemID.ChlorophyteGreaves) this.customCrit += 8; // CHLOROPHITE LEGS
 
 			for (int k = 3; k < 8 + player.extraAccessorySlots; k++)
 			{
-				if (player.armor[k].type == 1301) this.customCrit += 8; // DESTROYER EMBLEM
-				if (player.armor[k].type == 1248) this.customCrit += 10; // EYE OF THE GOLEM
-				if (player.armor[k].type == 3015) this.customCrit += 5; // PUTRID SCENT
-				if (player.armor[k].type == 3110) this.customCrit += 2; // CELESTIAL SHELL
-				if (player.armor[k].type == 1865) this.customCrit += 2; // CELESTIAL STONE
-				if (player.armor[k].type == 899 && Main.dayTime) this.customCrit += 2; // CELESTIAL STONE
-				if (player.armor[k].type == 900 && (!Main.dayTime || Main.eclipse)) this.customCrit += 2; // CELESTIAL STONE
+				if (player.armor[k].type == ItemID.DestroyerEmblem) this.customCrit += 8; // DESTROYER EMBLEM
+				if (player.armor[k].type == ItemID.EyeoftheGolem) this.customCrit += 10; // EYE OF THE GOLEM
+				if (player.armor[k].type == ItemID.PutridScent) this.customCrit += 5; // PUTRID SCENT
+				if (player.armor[k].type == ItemID.CelestialShell) this.customCrit += 2; // CELESTIAL SHELL
+				if (player.armor[k].type == ItemID.CelestialStone) this.customCrit += 2; // CELESTIAL STONE
+				if (player.armor[k].type == ItemID.SunStone && Main.dayTime) this.customCrit += 2; // CELESTIAL STONE
+				if (player.armor[k].type == ItemID.MoonStone && (!Main.dayTime || Main.eclipse)) this.customCrit += 2; // CELESTIAL STONE
 
 				if (player.armor[k].prefix == PrefixID.Lucky) this.customCrit += 4;
 				if (player.armor[k].prefix == PrefixID.Precise) this.customCrit += 2;
@@ -616,21 +623,31 @@ namespace OrchidMod
 
 		public void CheckWoodBreak(Player player)
 		{ // From Vanilla Source
+			if (player == null)//new null check
+				return;
 			if (player.velocity.Y <= 1f || this.generalTools)
 				return;
 			Vector2 vector2 = player.position + player.velocity;
+			if (vector2 == null)//new null check
+				return;
 			int num1 = (int)(vector2.X / 16.0);
 			int num2 = (int)((vector2.X + (double)player.width) / 16.0);
 			int num3 = (int)((player.position.Y + (double)player.height + 1.0) / 16.0);
+
 			for (int i = num1; i <= num2; ++i)
 			{
+				if (num1 <= 0 || num2 <= 0 || num3 <= 0)//May fix issue
+					return;
 				for (int j = num3; j <= num3 + 1; ++j)
-				{
+				{		
 					if (Main.tile[i, j].nactive() && (int)Main.tile[i, j].type == TileType<Tiles.Ambient.FragileWood>() && !WorldGen.SolidTile(i, j - 1))
 					{
+						if (Main.tile[i, j] == null)//new tile null check
+							return;
 						WorldGen.KillTile(i, j, false, false, false);
-						// if (Main.netMode == 1)
-						// NetMessage.SendData(17, -1, -1, (NetworkText) null, 0, (float) i, (float) j, 0.0f, 0, 0, 0);
+						if (Main.netMode == NetmodeID.MultiplayerClient)
+							NetMessage.SendData(MessageID.TileChange, -1, player.whoAmI, (NetworkText) null, 0, (float) i, (float) j, 0, 0, 0, 0);
+							//NetMessage.SendData(MessageID.TileChange, -1, -1, (NetworkText) null, 0, (float) i, (float) j, 0.0f, 0, 0, 0);
 					}
 				}
 			}
